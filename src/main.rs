@@ -1,5 +1,9 @@
 use serde_json::json;
-use std::{net::SocketAddr, path::PathBuf, process::Stdio};
+use std::{
+    net::{IpAddr, SocketAddr},
+    path::PathBuf,
+    process::Stdio,
+};
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{self, CorsLayer};
 
@@ -15,8 +19,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Clone)]
 struct Args {
-    #[arg(short, long, default_value_t = 8888)]
+    #[arg(short, long, default_value_t = 3000)]
     port: u16,
+    #[arg(long, default_value_t = IpAddr::from([0, 0, 0, 0]))]
+    bind: IpAddr,
     #[arg(long)]
     rustc_flux_path: PathBuf,
 }
@@ -28,7 +34,7 @@ struct AppError {
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    let addr = SocketAddr::from(([0, 0, 0, 0], args.port));
+    let addr = SocketAddr::from((args.bind, args.port));
 
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
@@ -41,7 +47,7 @@ async fn main() {
         .layer(cors)
         .with_state(args);
 
-    println!("listening on {addr}");
+    println!("Listening on {addr} ...");
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -66,18 +72,18 @@ struct EvaluateRes {
 }
 
 impl EvaluateRes {
-    fn err(err: impl ToString) -> Self {
-        let str = err.to_string();
-        Self {
-            result: str.clone(),
-            error: Some(str),
-        }
-    }
-
     fn success(result: impl ToString) -> Self {
         Self {
             result: result.to_string(),
             error: None,
+        }
+    }
+
+    fn error(err: impl ToString) -> Self {
+        let str = err.to_string();
+        Self {
+            result: str.clone(),
+            error: Some(str),
         }
     }
 }
@@ -106,7 +112,7 @@ async fn evaluate(
     let res = if out.status.success() {
         EvaluateRes::success("Safe")
     } else {
-        EvaluateRes::err(String::from_utf8(out.stderr)?)
+        EvaluateRes::error(String::from_utf8(out.stderr)?)
     };
     Ok(Json(res))
 }
