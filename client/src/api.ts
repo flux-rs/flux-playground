@@ -1,6 +1,8 @@
 import axios from "axios";
 import { editor } from "monaco-editor";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 namespace api {
   export type Status = "safe" | "unsafe" | "error";
   export interface VerifyRes {
@@ -15,7 +17,7 @@ namespace api {
   export const verify = (code: string): Promise<api.VerifyRes | api.FatalError> => {
     const req = { code, crateType: "rlib" };
     return axios
-      .post("http://localhost:3000/api/verify", req)
+      .post(`${BASE_URL}/verify`, req)
       .then((response) => response.data)
       .catch((response) => {
         if (response.response.status == 500) {

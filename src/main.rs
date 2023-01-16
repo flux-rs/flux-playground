@@ -1,13 +1,17 @@
-use flux_playground::{api, play_rust_lang_org};
+use flux_playground::{api, play_rust_lang_org, AppError};
 use std::{
+    io,
     net::{IpAddr, SocketAddr},
     path::PathBuf,
 };
-use tower_http::cors::{self, CorsLayer};
+use tower_http::{
+    cors::{self, CorsLayer},
+    services::ServeDir,
+};
 
 use axum::{
     http::{header, Method},
-    routing::post,
+    routing::{get_service, post},
     Router,
 };
 use clap::Parser;
@@ -20,6 +24,8 @@ struct Args {
     bind: IpAddr,
     #[arg(long)]
     rustc_flux_path: PathBuf,
+    #[arg(long)]
+    dist: PathBuf,
 }
 
 #[tokio::main]
@@ -31,6 +37,8 @@ async fn main() {
         .allow_headers([header::CONTENT_TYPE])
         .allow_origin(cors::Any);
 
+    let serve_root = get_service(ServeDir::new(args.dist)).handle_error(handle_error);
+
     let app = Router::new()
         .route(
             "/play.rust-lang.org/meta/crates",
@@ -41,6 +49,7 @@ async fn main() {
             post(play_rust_lang_org::evaluate),
         )
         .route("/api/verify", post(api::verify))
+        .nest_service("/", serve_root)
         .layer(cors)
         .with_state(args.rustc_flux_path);
 
@@ -52,4 +61,8 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+async fn handle_error(err: io::Error) -> AppError {
+    AppError::from(err)
 }
