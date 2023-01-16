@@ -1,11 +1,12 @@
+import { MouseEventHandler } from "react";
 import "./VerifyButton.css";
 
-function VerifyButton() {
+function VerifyButton({ onClick }: { onClick?: MouseEventHandler }) {
   const options = { minimap: { enabled: false } };
 
   return (
     <div className="verify-button">
-      <button>
+      <button onClick={onClick}>
         <div className="button-inner">
           Verify
           <svg
