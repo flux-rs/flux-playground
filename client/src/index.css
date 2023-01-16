@@ -8,7 +8,6 @@
 }
 
 body {
-  font-family: var(--primary-font);
   background-color: var(--background-color);
   padding: 0 1.25em;
   margin: 0;

@@ -24,7 +24,7 @@ struct Args {
     bind: IpAddr,
     #[arg(long)]
     rustc_flux_path: PathBuf,
-    #[arg(long)]
+    #[arg(long, default_value = "./dist")]
     dist: PathBuf,
 }
 
