@@ -1,0 +1,8 @@
+.editor {
+  border: 4px solid var(--border-color);
+}
+
+.header {
+  display: flex;
+  padding: 1.25em 0;
+}

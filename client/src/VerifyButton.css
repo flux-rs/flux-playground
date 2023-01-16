@@ -1,0 +1,41 @@
+.verify-button {
+  box-shadow: 0 2px 4px -2px rgb(0 0 0 / 40%), inset 0 1px 0 white;
+}
+
+.verify-button button {
+  background: var(--flux);
+  border-radius: var(--header-border-radius);
+  /* border-color: hsl(15deg 66.7% 32%); */
+  border-color: var(--flux);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+}
+
+.verify-button button:active {
+  border-top-color: var(--flux-dark);
+  border-bottom-color: var(--flux-dark);
+  background: var(--flux-dark);
+}
+
+.verify-button button:hover {
+  background: var(--flux-dark);
+  color: white;
+}
+
+.button-inner {
+  height: 3em;
+  display: flex;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 0 1em;
+  align-items: center;
+}
+
+.icon {
+  margin-left: 0.75em;
+}
+.icon {
+  display: block;
+  fill: currentColor;
+}
