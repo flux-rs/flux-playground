@@ -6,7 +6,7 @@ use serde_repr::Serialize_repr;
 
 use crate::{
     rustc_flux::{self, CrateType, ErrorLevel, RustcError, RustcFluxOpts},
-    AppError,
+    AppError, AppState,
 };
 
 #[derive(Deserialize)]
@@ -54,13 +54,13 @@ pub enum MarkerSeverity {
 }
 
 pub async fn verify(
-    State(rustc_flux_path): State<PathBuf>,
+    State(state): State<AppState>,
     Json(req): Json<VerifyReq>,
 ) -> Result<Json<VerifyRes>, AppError> {
     let opts = RustcFluxOpts::default()
         .error_format(rustc_flux::ErrorFormat::Json)
         .crate_type(req.crate_type);
-    let output = rustc_flux::run(rustc_flux_path, &req.code, opts).await?;
+    let output = rustc_flux::run(state.rustc_flux, &req.code, opts).await?;
 
     let errors = rustc_flux::parse_stderr_json(&output.stderr)?;
     let status = if output.status.success() {

@@ -1,4 +1,4 @@
-use flux_playground::{api, play_rust_lang_org, AppError};
+use flux_playground::{api, play_rust_lang_org, AppError, AppState};
 use std::{
     io,
     net::{IpAddr, SocketAddr},
@@ -11,7 +11,7 @@ use tower_http::{
 
 use axum::{
     http::{header, Method},
-    routing::{get_service, post},
+    routing::{get, get_service, post},
     Router,
 };
 use clap::Parser;
@@ -24,20 +24,27 @@ struct Args {
     bind: IpAddr,
     #[arg(long)]
     rustc_flux_path: PathBuf,
-    #[arg(long, default_value = "./dist")]
-    dist: PathBuf,
+    #[arg(long, default_value = "./static")]
+    r#static: PathBuf,
+    #[arg(long, default_value = "./examples")]
+    examples: PathBuf,
 }
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
+    let state = AppState {
+        rustc_flux: args.rustc_flux_path.clone(),
+        examples: args.examples.clone(),
+    };
 
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
         .allow_headers([header::CONTENT_TYPE])
         .allow_origin(cors::Any);
 
-    let serve_root = get_service(ServeDir::new(args.dist)).handle_error(handle_error);
+    let serve_static = get_service(ServeDir::new(args.r#static)).handle_error(handle_error);
+    let serve_examples = get_service(ServeDir::new(args.examples)).handle_error(handle_error);
 
     let app = Router::new()
         .route(
@@ -49,9 +56,11 @@ async fn main() {
             post(play_rust_lang_org::evaluate),
         )
         .route("/api/verify", post(api::verify))
-        .nest_service("/", serve_root)
+        .route("/api/examples", get(api::examples::list))
+        .nest_service("/examples", serve_examples)
+        .nest_service("/", serve_static)
         .layer(cors)
-        .with_state(args.rustc_flux_path);
+        .with_state(state);
 
     let addr = SocketAddr::from((args.bind, args.port));
 

@@ -1,0 +1,33 @@
+groups:
+  - { id: basics, display_name: Basics }
+  - { id: adts, display_name: ADTs }
+  # - { id: vectors, display_name: Vectors }
+
+examples:
+  # Basics
+  - display_name: Blank
+    file_name: blank.rs
+    group_id: basics
+  - display_name: Refinements
+    file_name: refinements.rs
+    group_id: basics
+  - display_name: Ownership
+    file_name: ownership.rs
+    group_id: basics
+  # ADTs
+  - display_name: Refined Option
+    file_name: refined-opt.rs
+    group_id: adts
+  - display_name: Recursive List
+    file_name: list.rs
+    group_id: adts
+  # # Vectors
+  # - display_name: K-means Clustering
+  #   file_name: kmeans.rs
+  #   group_id: vectors
+  # - display_name: Knuth-Morris-Pratt
+  #   file_name: kmp.rs
+  #   group_id: vectors
+  # - display_name: Fast Fourier Transform
+  #   file_name: fft.rs
+  #   group_id: vectors

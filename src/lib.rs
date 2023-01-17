@@ -1,9 +1,17 @@
+use std::path::PathBuf;
+
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
 pub mod api;
 pub mod play_rust_lang_org;
 pub mod rustc_flux;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub rustc_flux: PathBuf,
+    pub examples: PathBuf,
+}
 
 pub struct AppError {
     descr: String,
