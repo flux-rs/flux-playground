@@ -1,5 +1,3 @@
 /target
-
 .liquid
-
-dist.tar.gz
+dist
