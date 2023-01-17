@@ -1,3 +1,5 @@
+#[allow(unused)]
+
 #[flux::refined_by(n:int)]
 #[flux::invariant(n >= 0)]
 pub enum List<T> {

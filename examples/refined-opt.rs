@@ -1,3 +1,5 @@
+#[allow(unused)]
+
 #[flux::refined_by(b:bool)]
 pub enum Opt<T> {
     #[flux::variant(Opt<T>[false])]

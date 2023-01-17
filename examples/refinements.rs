@@ -1,3 +1,5 @@
+#[allow(unused)]
+
 #[flux::sig(fn(bool[true]) -> i32)]
 fn assert(b: bool) -> i32 {
     0
