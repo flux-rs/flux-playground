@@ -1,17 +1,18 @@
 use std::{
-    ffi::OsStr,
     fmt,
     io::{self, BufRead},
+    path::PathBuf,
     process::{Output, Stdio},
 };
 
 use serde::Deserialize;
 use tokio::io::AsyncWriteExt;
 
-#[derive(Default)]
-pub struct RustcFluxOpts {
+pub struct RustcFlux {
+    rustc_flux_path: PathBuf,
     error_format: ErrorFormat,
     crate_type: CrateType,
+    working_dir: Option<PathBuf>,
 }
 
 #[derive(Default)]
@@ -65,39 +66,55 @@ pub enum ErrorLevel {
     Note,
 }
 
-pub async fn run(
-    rustc_flux_path: impl AsRef<OsStr>,
-    code: &str,
-    opts: RustcFluxOpts,
-) -> io::Result<Output> {
-    let mut child = tokio::process::Command::new(rustc_flux_path)
-        .stdin(Stdio::piped())
-        .stderr(Stdio::piped())
-        .arg("-Zcrate-attr=feature(register_tool)")
-        .arg("-Zcrate-attr=register_tool(flux)")
-        .arg(format!("--error-format={}", opts.error_format))
-        .arg(format!("--crate-type={}", opts.crate_type))
-        .arg("-")
-        .spawn()?;
+impl RustcFlux {
+    pub fn new(rustc_flux_path: PathBuf) -> Self {
+        RustcFlux {
+            rustc_flux_path,
+            error_format: ErrorFormat::Human,
+            crate_type: CrateType::Bin,
+            working_dir: None,
+        }
+    }
 
-    child
-        .stdin
-        .take()
-        .unwrap()
-        .write_all(code.as_bytes())
-        .await?;
+    pub async fn run(&mut self, code: &str) -> io::Result<Output> {
+        let mut command = tokio::process::Command::new(&self.rustc_flux_path);
 
-    child.wait_with_output().await
-}
+        if let Some(working_dir) = &self.working_dir {
+            command.current_dir(working_dir);
+        }
 
-impl RustcFluxOpts {
-    pub fn error_format(mut self, error_format: ErrorFormat) -> Self {
+        let mut child = command
+            .stdin(Stdio::piped())
+            .stderr(Stdio::piped())
+            .arg("-Zcrate-attr=feature(register_tool)")
+            .arg("-Zcrate-attr=register_tool(flux)")
+            .arg(format!("--error-format={}", self.error_format))
+            .arg(format!("--crate-type={}", self.crate_type))
+            .arg("-")
+            .spawn()?;
+
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(code.as_bytes())
+            .await?;
+
+        child.wait_with_output().await
+    }
+
+    pub fn error_format(&mut self, error_format: ErrorFormat) -> &mut Self {
         self.error_format = error_format;
         self
     }
 
-    pub fn crate_type(mut self, crate_type: CrateType) -> Self {
+    pub fn crate_type(&mut self, crate_type: CrateType) -> &mut Self {
         self.crate_type = crate_type;
+        self
+    }
+
+    pub fn working_dir(&mut self, path: PathBuf) -> &mut Self {
+        self.working_dir = Some(path);
         self
     }
 }

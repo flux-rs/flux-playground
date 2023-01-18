@@ -1,7 +1,7 @@
-#[allow(unused)]
+#![allow(unused)]
 
 #[flux::refined_by(b:bool)]
-pub enum Opt<T> {
+enum Opt<T> {
     #[flux::variant(Opt<T>[false])]
     None,
     #[flux::variant((T) -> Opt<T>[true])]
@@ -10,7 +10,7 @@ pub enum Opt<T> {
 
 impl<T> Opt<T> {
     #[flux::sig(fn(&Opt<T>[@b]) -> bool[b])]
-    pub fn is_some(&self) -> bool {
+    fn is_some(&self) -> bool {
         match self {
             Opt::None => false,
             Opt::Some(_) => true,
@@ -18,7 +18,7 @@ impl<T> Opt<T> {
     }
 
     #[flux::sig(fn(Opt<T>[true]) -> T)]
-    pub fn unwrap(self) -> T {
+    fn unwrap(self) -> T {
         match self {
             Opt::Some(v) => v,
             Opt::None => unreachable(),

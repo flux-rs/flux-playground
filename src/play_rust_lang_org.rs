@@ -3,7 +3,7 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{rustc_flux, AppError, AppState};
+use crate::{rustc_flux::RustcFlux, AppError, AppState};
 
 pub async fn crates() -> Json<serde_json::Value> {
     let body = json!({"crates": []});
@@ -42,7 +42,7 @@ pub async fn evaluate(
     State(state): State<AppState>,
     Json(req): Json<EvaluateReq>,
 ) -> Result<Json<EvaluateRes>, AppError> {
-    let out = rustc_flux::run(state.rustc_flux, &req.code, Default::default()).await?;
+    let out = RustcFlux::new(state.rustc_flux).run(&req.code).await?;
 
     let res = if out.status.success() {
         EvaluateRes::success("SAFE")

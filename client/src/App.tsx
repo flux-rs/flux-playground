@@ -23,7 +23,7 @@ interface IExamplesMap {
 }
 
 function App() {
-  const value = `#[allow(unused)]
+  const value = `#![allow(unused)]
 
 #[flux::sig(fn() -> i32[10])]
 fn mk_ten() -> i32 {
@@ -38,7 +38,9 @@ fn mk_ten() -> i32 {
   const [selectedExample, setSelectedExample] = useState("");
   const [examples, setExamples] = useState({} as IExamplesMap);
 
-  const options = { minimap: { enabled: false } };
+  const monacoOptions: editor.IStandaloneEditorConstructionOptions = {
+    minimap: { enabled: false },
+  };
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
   const editorRef: MutableRefObject<editor.IStandaloneCodeEditor | null> = useRef(null);
@@ -63,10 +65,8 @@ fn mk_ten() -> i32 {
   const doVerify = () => {
     if (verifying) return;
 
-    const monaco = monacoRef.current;
-    const editor = editorRef.current;
-    const code = editor?.getValue();
-    if (monaco && editor && code) {
+    const code = editorRef.current?.getValue();
+    if (code) {
       setVerifying(true);
       api.verify(code).then((response) => {
         setVerifying(false);
@@ -102,7 +102,7 @@ fn mk_ten() -> i32 {
     setStatusAndMarkers(undefined, []);
   };
 
-  const selectDemo = (event: SelectChangeEvent<string>) => {
+  const selectExample = (event: SelectChangeEvent<string>) => {
     if (verifying) return;
 
     console.log(event.target.value);
@@ -117,12 +117,12 @@ fn mk_ten() -> i32 {
     });
   };
 
-  const demoItems = [];
+  const exampleItems = [];
   let key = 0;
   for (const group of Object.values(examples)) {
-    demoItems.push(<ListSubheader key={key++}>{group.groupName}</ListSubheader>);
+    exampleItems.push(<ListSubheader key={key++}>{group.groupName}</ListSubheader>);
     for (const example of group.examples) {
-      demoItems.push(
+      exampleItems.push(
         <MenuItem key={key++} value={example.fileName}>
           {example.displayName}
         </MenuItem>
@@ -134,11 +134,11 @@ fn mk_ten() -> i32 {
     <div className="content">
       <Stack>
         <h1>Flux Playground</h1>
-        <Box sx={{ maxWidth: 150 }}>
-          <FormControl fullWidth>
-            <InputLabel>Select Demo</InputLabel>
-            <Select label="Select Demo" onChange={selectDemo} value={selectedExample}>
-              {demoItems.map((item) => item)}
+        <Box>
+          <FormControl sx={{ minWidth: 160 }}>
+            <InputLabel>Select Example</InputLabel>
+            <Select label="Select Example" onChange={selectExample} value={selectedExample}>
+              {exampleItems.map((item) => item)}
             </Select>
           </FormControl>
         </Box>
@@ -151,7 +151,7 @@ fn mk_ten() -> i32 {
             value={value}
             height="90vh"
             defaultLanguage="rust"
-            options={options}
+            options={monacoOptions}
             onMount={editorDidMount}
           />
         </div>
