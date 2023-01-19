@@ -1,23 +1,20 @@
-import "./App.css";
 import Editor, { Monaco } from "@monaco-editor/react";
 import VerifyButton from "./VerifyButton";
 import React, { useRef, MutableRefObject, useState, useEffect } from "react";
 import { editor } from "monaco-editor";
-import {
-  Box,
-  Container,
-  FormControl,
-  InputLabel,
-  ListSubheader,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import ResultAlert from "./ResultAlert";
 import api from "./api";
 import FatalError from "./FatalError";
-import { Group } from "@mui/icons-material";
+import EditorToolbar from "./EditorToolbar";
+import { SelectChangeEvent } from "@mui/material/Select/SelectInput";
+import ListSubheader from "@mui/material/ListSubheader";
+import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
 
 interface IExamplesMap {
   [key: string]: { groupName: string; examples: api.IExample[] };
@@ -150,17 +147,25 @@ fn mk_ten() -> i32 {
             </Select>
           </FormControl>
         </Box>
-        <Stack direction="row" className="header" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ padding: "1.25em 0", minHeight: "48px" }}>
           <VerifyButton onClick={doVerify} verifying={verifying} />
           <ResultAlert status={status} onClose={closeResult} />
         </Stack>
-        <Editor
-          className="editor"
-          value={value}
-          defaultLanguage="rust"
-          options={monacoOptions}
-          onMount={editorDidMount}
-        />
+        <EditorToolbar />
+        <Box
+          sx={{
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            height: "100%",
+          }}
+        >
+          <Editor
+            className="editor"
+            value={value}
+            defaultLanguage="rust"
+            options={monacoOptions}
+            onMount={editorDidMount}
+          />
+        </Box>
         <FatalError message={fatalError} onClose={closeFatalError}></FatalError>
       </Stack>
     </Container>
