@@ -5,6 +5,7 @@ import React, { useRef, MutableRefObject, useState, useEffect } from "react";
 import { editor } from "monaco-editor";
 import {
   Box,
+  Container,
   FormControl,
   InputLabel,
   ListSubheader,
@@ -60,6 +61,13 @@ fn mk_ten() -> i32 {
         setExamples(map);
       }
     });
+    window.addEventListener("resize", () => {
+      editorRef.current?.layout({} as editor.IDimension);
+    });
+
+    return () => {
+      window.removeEventListener("resize", () => {});
+    };
   }, []);
 
   const doVerify = () => {
@@ -131,8 +139,8 @@ fn mk_ten() -> i32 {
   }
 
   return (
-    <div className="content">
-      <Stack>
+    <Container className="content" maxWidth={false} sx={{ height: "100vh" }}>
+      <Stack height="100%">
         <h1>Flux Playground</h1>
         <Box>
           <FormControl sx={{ minWidth: 160 }}>
@@ -146,18 +154,16 @@ fn mk_ten() -> i32 {
           <VerifyButton onClick={doVerify} verifying={verifying} />
           <ResultAlert status={status} onClose={closeResult} />
         </Stack>
-        <div className="editor">
-          <Editor
-            value={value}
-            height="90vh"
-            defaultLanguage="rust"
-            options={monacoOptions}
-            onMount={editorDidMount}
-          />
-        </div>
+        <Editor
+          className="editor"
+          value={value}
+          defaultLanguage="rust"
+          options={monacoOptions}
+          onMount={editorDidMount}
+        />
         <FatalError message={fatalError} onClose={closeFatalError}></FatalError>
       </Stack>
-    </div>
+    </Container>
   );
 }
 
