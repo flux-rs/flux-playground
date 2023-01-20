@@ -2,6 +2,7 @@ import VerifyButton from "./VerifyButton";
 import React, { useRef, MutableRefObject, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
 import ResultAlert from "./ResultAlert";
 import api from "./api";
 import FatalError from "./FatalError";
@@ -19,6 +20,8 @@ import { useLocation, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 import ShareDialog from "./ShareDialog";
 import * as base64url from "./base64url";
+import { useTheme, createTheme, ThemeProvider } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 type IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 type IMarkerData = editor.IMarkerData;
@@ -44,11 +47,11 @@ fn mk_ten() -> i32 {
   const [fatalError, setFatalError] = useState(undefined as string | undefined);
   const [status, setStatus] = useState(undefined as api.Status | undefined);
   const [verifying, setVerifying] = useState(false);
-  const [selectedExample, setSelectedExample] = useState("");
   const [examples, setExamples] = useState({} as IExamplesMap);
   const [vimSelected, setVimSelected] = useState(false);
   const [shareLink, setShareLink] = useState(undefined as string | undefined);
   const search = useLocation().search;
+  const theme = useTheme();
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
   const editorRef: MutableRefObject<IStandaloneCodeEditor | null> = useRef(null);
@@ -196,14 +199,20 @@ fn mk_ten() -> i32 {
     }
   }
 
+  const monacoTheme = theme.palette.mode == "light" ? "vs" : "vs-dark";
+
   return (
-    <Container className="content" maxWidth={false} sx={{ height: "100vh" }}>
+    <Container
+      className="content"
+      maxWidth={false}
+      sx={{ height: "100vh", background: (theme) => `${theme.palette.background.default}` }}
+    >
       <Stack height="100%">
-        <h1>Flux Playground</h1>
+        <h1 style={{ color: theme.palette.text.primary }}>Flux Playground</h1>
         <Box>
           <FormControl sx={{ minWidth: 160 }}>
             <InputLabel>Select Example</InputLabel>
-            <Select label="Select Example" value={selectedExample}>
+            <Select label="Select Example" value="">
               {exampleItems.map((item) => item)}
             </Select>
           </FormControl>
@@ -228,6 +237,7 @@ fn mk_ten() -> i32 {
           <Editor
             className="editor"
             value={value}
+            theme={monacoTheme}
             language="rust"
             options={monacoOptions}
             onMount={editorDidMount}
@@ -252,4 +262,22 @@ fn mk_ten() -> i32 {
   );
 }
 
-export default App;
+function AppWithColorMode() {
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark");
+
+  const theme = React.useMemo(() => {
+    return createTheme({
+      palette: {
+        mode: prefersDarkMode ? "dark" : "light",
+      },
+    });
+  }, [prefersDarkMode]);
+
+  return (
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  );
+}
+
+export default AppWithColorMode;

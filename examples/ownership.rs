@@ -1,9 +1,7 @@
 #![allow(unused)]
 
-#[flux::sig(fn(bool[true]) -> i32)]
-fn assert(_: bool) -> i32 {
-    0
-}
+#[flux::sig(fn(bool[true]) )]
+fn assert(_: bool) {}
 
 // Increment via a value
 #[flux::sig(fn(n: i32) -> i32[n+1])]

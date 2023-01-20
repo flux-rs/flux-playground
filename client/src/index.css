@@ -1,11 +1,3 @@
-:root {
-  --border-color: #bbb;
-  --flux: #a42;
-  --flux-dark: #80331a;
-  --header-border-radius: 4px;
-  --background-color: #e1e1db;
-}
-
 body {
   margin: 0;
   font-size: 1rem;

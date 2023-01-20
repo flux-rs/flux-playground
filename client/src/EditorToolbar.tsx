@@ -12,12 +12,13 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { usePopupState } from "material-ui-popup-state/hooks";
 import MenuList from "@mui/material/MenuList";
-import { Share } from "@mui/icons-material";
+import Share from "@mui/icons-material/Share";
 
 const EditorButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   "& .MuiButtonGroup-grouped": {
     border: 0,
     color: "inherit",
+    textTransform: "none",
     "&:hover": {
       border: 0,
     },

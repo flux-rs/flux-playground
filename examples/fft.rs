@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-pub mod rvec;
+mod rvec;
 use std::f32::consts::PI;
 
 use rvec::RVec;
