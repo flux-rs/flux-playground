@@ -14,6 +14,7 @@ examples:
   - display_name: Ownership
     file_name: ownership.rs
     group_id: basics
+
   # ADTs
   - display_name: Refined Option
     file_name: refined-opt.rs
@@ -21,6 +22,7 @@ examples:
   - display_name: Recursive List
     file_name: list.rs
     group_id: adts
+
   # Vectors
   - display_name: K-means Clustering
     file_name: kmeans.rs
