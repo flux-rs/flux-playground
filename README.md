@@ -2,45 +2,70 @@
 
 Service to run flux in the browser.
 
-## Dev
+## Development
+
+For development it is recommended to run the server and client separately
 
 ### Run Server
 
 To run the server
 
 ```bash
-cargo run -- --rustc-flux-path /path/to/rustc-flux
+$ cargo run -- --rustc-flux-path /path/to/rustc-flux
 ```
 
 Alternatively you can install cargo watch:
 
 ```bash
-cargo install cargo-watch
+$ cargo install cargo-watch
 ```
 
-and run server with
+and run the server with
 
 ```bash
-cargo watch -x "run -- --rustc-flux-path /path/to-/rustc-flux"
+$ cargo watch -x "run -- --rustc-flux-path /path/to-/rustc-flux"
 ```
 
 This will start a server in port 3000.
 
 ### Run Client
 
-```bash
-cd client
-npm run dev
+**Install dependencies**
+
+The first time you run the client you need to install the dependencies
+
+```
+$ cd client
+$ npm install
 ```
 
-This will start a server for the client with auto-reload. It prints the URL where it is served.
+**Run vite server**
+
+```bash
+$ cd client
+$ npm run dev
+```
+
+This will start a server for the client with hot reload. It prints the URL where it is served.
+
+## Add examples
+
+To add example just put a file in the [examples](examples) directory and then add an appropriate entry to [config.yaml](examples/config.yaml).
 
 ## Deploy
 
-The script `[install.sh]` will build the server and the client and put all neccesary fields in
-the directory `dist`. Then to run the server.
+### Build
+First run
+```
+$ ./install.sh
+```
+This will build the server and client, and then move all neccesary files to `./dist`. 
+
+### Start server
+
+To start the server
 
 ```bash
-cd dist
-./flux-playground --rustc-flux-path /path/to/rustc-flux
+$ cd dist
+$ ./flux-playground --rustc-flux-path /path/to/rustc-flux
 ```
