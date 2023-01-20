@@ -3,12 +3,18 @@
   --flux: #a42;
   --flux-dark: #80331a;
   --header-border-radius: 4px;
-  --primary-font: "Open Sans", sans-serif;
   --background-color: #e1e1db;
 }
 
 body {
-  background-color: var(--background-color);
   margin: 0;
   font-size: 1rem;
+}
+
+#vim-status-bar > span > span:last-child {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+#vim-status-bar > span > span:first-child > input {
+  outline: none;
 }
