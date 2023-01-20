@@ -17,6 +17,8 @@ import Editor, { Monaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
 import { useLocation, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
+import ShareDialog from "./ShareDialog";
+import * as base64url from "./base64url";
 
 type IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 type IMarkerData = editor.IMarkerData;
@@ -45,6 +47,7 @@ fn mk_ten() -> i32 {
   const [selectedExample, setSelectedExample] = useState("");
   const [examples, setExamples] = useState({} as IExamplesMap);
   const [vimSelected, setVimSelected] = useState(false);
+  const [shareLink, setShareLink] = useState(undefined as string | undefined);
   const search = useLocation().search;
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
@@ -80,9 +83,19 @@ fn mk_ten() -> i32 {
 
   useEffect(() => {
     const editor = editorRef.current;
-    const example = new URLSearchParams(search).get("example");
-    editor && example && loadExample(editor, example);
+    editor && handleQueryParams(editor);
   }, [search]);
+
+  const handleQueryParams = (editor: IStandaloneCodeEditor) => {
+    const params = new URLSearchParams(search);
+    const example = params.get("example");
+    const code = params.get("code");
+    if (code) {
+      editor.setValue(base64url.decode(code));
+    } else if (example) {
+      loadExample(editor, example);
+    }
+  };
 
   const doVerify = () => {
     if (verifying) return;
@@ -113,8 +126,7 @@ fn mk_ten() -> i32 {
     monacoRef.current = monaco;
     editorRef.current = editor;
 
-    const example = new URLSearchParams(search).get("example");
-    editor && example && loadExample(editor, example);
+    handleQueryParams(editor);
 
     (window.require as any).config({
       paths: {
@@ -162,6 +174,13 @@ fn mk_ten() -> i32 {
     setMonacoOptions({ ...monacoOptions, fontSize });
   };
 
+  const onShareClick = () => {
+    const encoded = base64url.encode(editorRef.current?.getValue() || "");
+    const location = window.location;
+    const link = `${location.protocol}//${location.host}/?code=${encoded}`;
+    setShareLink(link);
+  };
+
   const exampleItems = [];
   let key = 0;
   for (const group of Object.values(examples)) {
@@ -197,6 +216,7 @@ fn mk_ten() -> i32 {
           vimSelected={vimSelected}
           onVimChange={toggleVim}
           onFontChange={onFontChange}
+          onShareClick={onShareClick}
           selectedFontSize={monacoOptions.fontSize}
         />
         <Box
@@ -226,6 +246,7 @@ fn mk_ten() -> i32 {
           }}
         ></Paper>
         <FatalError message={fatalError} onClose={closeFatalError}></FatalError>
+        <ShareDialog link={shareLink} onClose={() => setShareLink(undefined)} />
       </Stack>
     </Container>
   );
