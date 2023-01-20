@@ -59,7 +59,21 @@ namespace api {
           code: response.data,
         };
       })
-      .catch(mapErr);
+      .catch((response) => {
+        if (response.response.status == 500) {
+          return {
+            error: response.response.statusText,
+          };
+        } else if (response.response.status == 404) {
+          return {
+            error: "File not found",
+          };
+        } else {
+          return {
+            error: response.response.statusText,
+          };
+        }
+      });
   };
 
   const mapErr = (response: any): api.IFatalError => {

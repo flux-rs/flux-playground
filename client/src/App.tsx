@@ -6,7 +6,6 @@ import ResultAlert from "./ResultAlert";
 import api from "./api";
 import FatalError from "./FatalError";
 import EditorToolbar from "./EditorToolbar";
-import { SelectChangeEvent } from "@mui/material/Select/SelectInput";
 import ListSubheader from "@mui/material/ListSubheader";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
@@ -16,6 +15,8 @@ import Select from "@mui/material/Select";
 import Paper from "@mui/material/Paper";
 import Editor, { Monaco } from "@monaco-editor/react";
 import { editor } from "monaco-editor";
+import { useLocation, Link as RouterLink } from "react-router-dom";
+import Link from "@mui/material/Link";
 
 type IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 type IMarkerData = editor.IMarkerData;
@@ -38,16 +39,13 @@ fn mk_ten() -> i32 {
   };
 
   const [monacoOptions, setMonacoOptions] = useState(monacoDefaultOptions);
-
   const [fatalError, setFatalError] = useState(undefined as string | undefined);
-
   const [status, setStatus] = useState(undefined as api.Status | undefined);
   const [verifying, setVerifying] = useState(false);
-
   const [selectedExample, setSelectedExample] = useState("");
   const [examples, setExamples] = useState({} as IExamplesMap);
-
   const [vimSelected, setVimSelected] = useState(false);
+  const search = useLocation().search;
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
   const editorRef: MutableRefObject<IStandaloneCodeEditor | null> = useRef(null);
@@ -80,6 +78,12 @@ fn mk_ten() -> i32 {
     };
   }, []);
 
+  useEffect(() => {
+    const editor = editorRef.current;
+    const example = new URLSearchParams(search).get("example");
+    editor && example && loadExample(editor, example);
+  }, [search]);
+
   const doVerify = () => {
     if (verifying) return;
     const code = editorRef.current?.getValue();
@@ -109,10 +113,25 @@ fn mk_ten() -> i32 {
     monacoRef.current = monaco;
     editorRef.current = editor;
 
+    const example = new URLSearchParams(search).get("example");
+    editor && example && loadExample(editor, example);
+
     (window.require as any).config({
       paths: {
         "monaco-vim": "https://unpkg.com/monaco-vim@0.3.5/dist/monaco-vim.js",
       },
+    });
+  };
+
+  const loadExample = (editor: IStandaloneCodeEditor, example: string) => {
+    api.getExampleCode(example).then((response) => {
+      setStatusAndMarkers(undefined, []);
+      if ("error" in response) {
+        setFatalError(response.error);
+        editor.setValue("");
+      } else {
+        editor.setValue(response.code);
+      }
     });
   };
 
@@ -139,19 +158,6 @@ fn mk_ten() -> i32 {
     }
   };
 
-  const selectExample = (event: SelectChangeEvent<string>) => {
-    if (verifying) return;
-    setSelectedExample(event.target.value);
-    api.getExampleCode(event.target.value).then((response) => {
-      if ("error" in response) {
-        setFatalError(response.error);
-      } else {
-        editorRef.current?.setValue(response.code);
-        setStatusAndMarkers(undefined, []);
-      }
-    });
-  };
-
   const onFontChange = (fontSize: number) => {
     setMonacoOptions({ ...monacoOptions, fontSize });
   };
@@ -162,8 +168,10 @@ fn mk_ten() -> i32 {
     exampleItems.push(<ListSubheader key={key++}>{group.groupName}</ListSubheader>);
     for (const example of group.examples) {
       exampleItems.push(
-        <MenuItem key={key++} value={example.fileName}>
-          {example.displayName}
+        <MenuItem key={key++} value="">
+          <Link component={RouterLink} to={`?example=${example.fileName}`}>
+            {example.displayName}
+          </Link>
         </MenuItem>
       );
     }
@@ -176,7 +184,7 @@ fn mk_ten() -> i32 {
         <Box>
           <FormControl sx={{ minWidth: 160 }}>
             <InputLabel>Select Example</InputLabel>
-            <Select label="Select Example" onChange={selectExample} value={selectedExample}>
+            <Select label="Select Example" value={selectedExample}>
               {exampleItems.map((item) => item)}
             </Select>
           </FormControl>

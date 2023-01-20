@@ -18,7 +18,7 @@ function FatalError({ message, onClose }: FatalErrorPros) {
       onClose={onClose}
     >
       <Alert severity="error" onClose={onClose} sx={{ width: "100%" }} variant="filled">
-        <AlertTitle>Internal Server Error</AlertTitle>
+        {/* <AlertTitle>Error</AlertTitle> */}
         {message}
       </Alert>
     </Snackbar>
