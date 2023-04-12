@@ -26,7 +26,7 @@ impl<T> List<T> {
         }
     }
 
-    #[flux::sig(fn({&List<T>[@n] : 0 < n}) -> &T)]
+    #[flux::sig(fn({&List<T>[@n] | 0 < n}) -> &T)]
     fn head(&self) -> &T {
         match self {
             List::Nil => unreachable(),
@@ -34,7 +34,7 @@ impl<T> List<T> {
         }
     }
 
-    #[flux::sig(fn({&List<T>[@n] : 0 < n}) -> &List<T>)]
+    #[flux::sig(fn({&List<T>[@n] | 0 < n}) -> &List<T>)]
     fn tail(&self) -> &List<T> {
         match self {
             List::Nil => unreachable(),

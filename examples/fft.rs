@@ -15,7 +15,7 @@ fn fft(px: &mut RVec<f32>, py: &mut RVec<f32>) {
     loop_c(px, py);
 }
 
-#[flux::sig(fn({&mut RVec<f32>[@n] : n > 0}, &mut RVec<f32>[n]))]
+#[flux::sig(fn({&mut RVec<f32>[@n] | n > 0}, &mut RVec<f32>[n]))]
 fn loop_a(px: &mut RVec<f32>, py: &mut RVec<f32>) {
     let n = px.len() - 1;
     let mut n2 = n;
@@ -83,7 +83,7 @@ fn loop_a(px: &mut RVec<f32>, py: &mut RVec<f32>) {
     }
 }
 
-#[flux::sig(fn({&mut RVec<f32>[@n] : n > 0}, &mut RVec<f32>[n]))]
+#[flux::sig(fn({&mut RVec<f32>[@n] | n > 0}, &mut RVec<f32>[n]))]
 fn loop_b(px: &mut RVec<f32>, py: &mut RVec<f32>) {
     let n = px.len() - 1;
     let mut is = 1;
@@ -134,7 +134,7 @@ fn loop_c(px: &mut RVec<f32>, py: &mut RVec<f32>) {
     }
 }
 
-#[flux::sig(fn(j: usize, k: usize) -> usize{v : v <= k + k})]
+#[flux::sig(fn(j: usize, k: usize) -> usize{v: v <= k + k})]
 fn loop_c1(j: usize, k: usize) -> usize {
     if j <= k {
         j + k
@@ -143,7 +143,7 @@ fn loop_c1(j: usize, k: usize) -> usize {
     }
 }
 
-#[flux::sig(fn(usize{v : v >= 2}) -> f32)]
+#[flux::sig(fn(usize{v: v >= 2}) -> f32)]
 fn fft_test(np: usize) -> f32 {
     let enp = np as f32;
     let n2 = np / 2;

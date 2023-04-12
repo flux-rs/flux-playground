@@ -19,7 +19,10 @@ fn inc_mut(x: &mut i32) {
 }
 
 // Increment via a strong reference
-#[flux::sig(fn(x: &strg i32[@n]) ensures x: i32[n+1])]
+#[flux::sig(
+    fn(x: &strg i32[@n]) 
+    ensures x: i32[n+1]
+)]
 fn inc_strg(x: &mut i32) {
     *x += 1;
 }
