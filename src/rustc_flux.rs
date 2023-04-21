@@ -57,13 +57,15 @@ pub struct Span {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "kebab-case")]
+// #[serde(rename_all = "kebab-case")]
+#[serde(try_from = "&str")]
 pub enum ErrorLevel {
     Error,
     Warning,
     FailureNote,
     Help,
     Note,
+    ICE,
 }
 
 impl RustcFlux {
@@ -123,7 +125,10 @@ pub fn parse_stderr_json(stderr: &[u8]) -> serde_json::Result<Vec<RustcError>> {
     let mut errors = vec![];
     for line in stderr.lines() {
         let line = line.unwrap();
-        errors.push(serde_json::from_str(&line)?)
+        // When there's an ICE the output contains lines that are not valid json, so we skip them.
+        if line.starts_with('{') {
+            errors.push(serde_json::from_str(&line)?)
+        }
     }
     Ok(errors)
 }
@@ -144,5 +149,22 @@ impl fmt::Display for CrateType {
             CrateType::Rlib => write!(f, "rlib"),
             CrateType::Bin => write!(f, "bin"),
         }
+    }
+}
+
+impl TryFrom<&str> for ErrorLevel {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, String> {
+        let level = match value {
+            "error" => ErrorLevel::Error,
+            "warning" => ErrorLevel::Warning,
+            "failure-note" => ErrorLevel::FailureNote,
+            "help" => ErrorLevel::Help,
+            "note" => ErrorLevel::Note,
+            "error: internal compiler error" => ErrorLevel::ICE,
+            _ => return Err(format!("unknown error level `{value}`")),
+        };
+        Ok(level)
     }
 }

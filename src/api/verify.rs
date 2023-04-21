@@ -119,6 +119,7 @@ impl TryFrom<ErrorLevel> for MarkerSeverity {
 
     fn try_from(level: ErrorLevel) -> Result<Self, ()> {
         match level {
+            ErrorLevel::ICE => Ok(MarkerSeverity::Error),
             ErrorLevel::Error => Ok(MarkerSeverity::Error),
             ErrorLevel::Warning => Ok(MarkerSeverity::Warning),
             ErrorLevel::Help => Ok(MarkerSeverity::Hint),
