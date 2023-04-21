@@ -20,8 +20,10 @@ import { useLocation, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 import ShareDialog from "./ShareDialog";
 import * as base64url from "./base64url";
+import * as utf8 from "./utf8";
 import { useTheme, createTheme, ThemeProvider } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import deflate from "deflate-js";
 
 type IStandaloneCodeEditor = editor.IStandaloneCodeEditor;
 type IMarkerData = editor.IMarkerData;
@@ -94,7 +96,7 @@ fn mk_ten() -> i32 {
     const example = params.get("example");
     const code = params.get("code");
     if (code) {
-      editor.setValue(base64url.decode(code));
+      editor.setValue(utf8.decode(deflate.inflate(base64url.decode(code))));
     } else if (example) {
       loadExample(editor, example);
     }
@@ -178,9 +180,11 @@ fn mk_ten() -> i32 {
   };
 
   const onShareClick = () => {
-    const encoded = base64url.encode(editorRef.current?.getValue() || "");
+    const code = editorRef.current?.getValue() || "";
+    const encoded = base64url.encode(deflate.deflate(utf8.encode(code)));
     const location = window.location;
     const link = `${location.protocol}//${location.host}/?code=${encoded}`;
+
     setShareLink(link);
   };
 

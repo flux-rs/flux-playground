@@ -1,17 +1,27 @@
+import * as utf8 from "./utf8";
+
 // private property
 const KEY_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
 
 // public method for encoding
-export const encode = (input: string): string => {
+export const encode_text = (input: string): string => {
+  const bytes = utf8.encode(input);
+  return encode(bytes);
+};
+
+export const decode_text = (input: string): string => {
+  const bytes = decode(input);
+  return utf8.decode(bytes);
+};
+
+export const encode = (input: number[]): string => {
   let output = "";
   let i = 0;
 
-  input = utf8_encode(input);
-
   while (i < input.length) {
-    const chr1 = input.charCodeAt(i++);
-    const chr2 = input.charCodeAt(i++);
-    const chr3 = input.charCodeAt(i++);
+    const chr1 = input[i++];
+    const chr2 = input[i++];
+    const chr3 = input[i++];
 
     const enc1 = chr1 >> 2;
     const enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
@@ -36,8 +46,8 @@ export const encode = (input: string): string => {
 };
 
 // public method for decoding
-export const decode = (input: string): string => {
-  let output = "";
+export const decode = (input: string): number[] => {
+  let bytes = [];
   let i = 0;
 
   while (i < input.length) {
@@ -50,64 +60,14 @@ export const decode = (input: string): string => {
     const chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
     const chr3 = ((enc3 & 3) << 6) | enc4;
 
-    output = output + String.fromCharCode(chr1);
+    bytes.push(chr1);
 
     if (enc3 != 64) {
-      output = output + String.fromCharCode(chr2);
+      bytes.push(chr2);
     }
     if (enc4 != 64) {
-      output = output + String.fromCharCode(chr3);
+      bytes.push(chr3);
     }
   }
-
-  output = utf8_decode(output);
-
-  return output;
-};
-
-// private method for UTF-8 encoding
-const utf8_encode = (str: string) => {
-  str = str.replace(/\r\n/g, "\n");
-  let utftext = "";
-
-  for (let n = 0; n < str.length; n++) {
-    const c = str.charCodeAt(n);
-
-    if (c < 128) {
-      utftext += String.fromCharCode(c);
-    } else if (c > 127 && c < 2048) {
-      utftext += String.fromCharCode((c >> 6) | 192);
-      utftext += String.fromCharCode((c & 63) | 128);
-    } else {
-      utftext += String.fromCharCode((c >> 12) | 224);
-      utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-      utftext += String.fromCharCode((c & 63) | 128);
-    }
-  }
-  return utftext;
-};
-
-// private method for UTF-8 decoding
-const utf8_decode = (utftext: string): string => {
-  let str = "";
-  let i = 0;
-
-  while (i < utftext.length) {
-    const c = utftext.charCodeAt(i);
-
-    if (c < 128) {
-      str += String.fromCharCode(c);
-      i++;
-    } else if (c > 191 && c < 224) {
-      const c2 = utftext.charCodeAt(i + 1);
-      str += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-      i += 2;
-    } else {
-      const c2 = utftext.charCodeAt(i + 1);
-      const c3 = utftext.charCodeAt(i + 2);
-      str += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-      i += 3;
-    }
-  }
-  return str;
+  return bytes;
 };
