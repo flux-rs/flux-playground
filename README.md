@@ -50,7 +50,7 @@ This will start a server for the client with hot reload. It prints the URL where
 
 ## Add examples
 
-To add example just put a file in the [examples](examples) directory and then add an appropriate entry to [config.yaml](examples/config.yaml).
+To add an example put a file in the [examples/](examples) directory and then add an appropriate entry to [config.yaml](examples/config.yaml). Files are checked as if they were inside the [`lib/`](./examples/lib/) directory, which means files in that directory can be declared as modules inside example files. See [`kmeans.rs`](./examples/kmeans.rs#L3) for an example that declares the `rvec` module.
 
 ## Deploy
 
