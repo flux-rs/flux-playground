@@ -2,7 +2,7 @@ mod rvec;
 use rvec::RVec;
 
 // An `assert` function, whose precondition expects only `true`
-#[flux::sig(fn (bool[true]) -> ())]
+#[flux::sig(fn(bool[true]))]
 pub fn assert(_: bool) {}
 
 #[flux::sig(fn() -> usize{v: 10 <= v})]
