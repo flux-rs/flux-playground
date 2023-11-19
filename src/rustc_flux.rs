@@ -88,8 +88,6 @@ impl RustcFlux {
         let mut child = command
             .stdin(Stdio::piped())
             .stderr(Stdio::piped())
-            .arg("-Zcrate-attr=feature(register_tool)")
-            .arg("-Zcrate-attr=register_tool(flux)")
             .arg(format!("--error-format={}", self.error_format))
             .arg(format!("--crate-type={}", self.crate_type))
             .arg("-")

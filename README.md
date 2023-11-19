@@ -14,7 +14,7 @@ To run the server
 $ cargo run -- --rustc-flux-path /path/to/rustc-flux
 ```
 
-Alternatively you can install cargo watch:
+Alternatively, you can install cargo watch:
 
 ```bash
 $ cargo install cargo-watch
@@ -34,7 +34,7 @@ This will start a server in port 3000.
 
 The first time you run the client you need to install the dependencies
 
-```
+```bash
 $ cd client
 $ npm install
 ```
@@ -55,11 +55,14 @@ To add an example put a file in the [examples/](examples) directory and then add
 ## Deploy
 
 ### Build
+
 First run
-```
+
+```bash
 $ ./install.sh
 ```
-This will build the server and client, and then move all neccesary files to `./dist`. 
+
+This will build the server and client, and then move all necessary files to `./dist`.
 
 ### Start server
 
