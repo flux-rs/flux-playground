@@ -10,6 +10,7 @@ pub mod rustc_flux;
 #[derive(Clone)]
 pub struct AppState {
     pub rustc_flux: PathBuf,
+    pub ansi_to_html: bool,
     pub examples: PathBuf,
 }
 

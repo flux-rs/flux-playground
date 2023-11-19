@@ -3,7 +3,10 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{rustc_flux::RustcFlux, AppError, AppState};
+use crate::{
+    rustc_flux::{Color, RustcFlux},
+    AppError, AppState,
+};
 
 pub async fn crates() -> Json<serde_json::Value> {
     let body = json!({"crates": []});
@@ -29,11 +32,10 @@ impl EvaluateRes {
         }
     }
 
-    fn error(err: impl ToString) -> Self {
-        let str = err.to_string();
+    fn error(err: String) -> Self {
         Self {
-            result: str.clone(),
-            error: Some(str),
+            result: err.clone(),
+            error: Some(err),
         }
     }
 }
@@ -42,12 +44,24 @@ pub async fn evaluate(
     State(state): State<AppState>,
     Json(req): Json<EvaluateReq>,
 ) -> Result<Json<EvaluateRes>, AppError> {
-    let out = RustcFlux::new(state.rustc_flux).run(&req.code).await?;
+    let mut rustc = RustcFlux::new(state.rustc_flux);
+
+    if state.ansi_to_html {
+        rustc.color(Color::Always);
+    }
+
+    let out = rustc.run(&req.code).await?;
 
     let res = if out.status.success() {
         EvaluateRes::success("SAFE")
     } else {
-        EvaluateRes::error(String::from_utf8(out.stderr)?)
+        let stderr = String::from_utf8(out.stderr)?;
+        if state.ansi_to_html {
+            let html = ansi_to_html::convert_escaped(&stderr)?;
+            EvaluateRes::error(html)
+        } else {
+            EvaluateRes::error(stderr)
+        }
     };
     Ok(Json(res))
 }

@@ -24,6 +24,9 @@ struct Args {
     bind: IpAddr,
     #[arg(long)]
     rustc_flux_path: PathBuf,
+    /// Run with `--color==awlays` and convert ANSI escape codes to HTML
+    #[arg(long, default_value = "false")]
+    ansi_to_html: bool,
     #[arg(long, default_value = "./static")]
     r#static: PathBuf,
     #[arg(long, default_value = "./examples")]
@@ -34,8 +37,9 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     let state = AppState {
-        rustc_flux: args.rustc_flux_path.clone(),
+        rustc_flux: args.rustc_flux_path,
         examples: args.examples.clone(),
+        ansi_to_html: args.ansi_to_html,
     };
 
     let cors = CorsLayer::new()

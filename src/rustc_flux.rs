@@ -12,6 +12,7 @@ pub struct RustcFlux {
     rustc_flux_path: PathBuf,
     error_format: ErrorFormat,
     crate_type: CrateType,
+    color: Color,
     working_dir: Option<PathBuf>,
 }
 
@@ -68,12 +69,32 @@ pub enum ErrorLevel {
     ICE,
 }
 
+#[derive(Deserialize, Debug, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Color {
+    #[default]
+    Auto,
+    Always,
+    Never,
+}
+
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Color::Auto => write!(f, "auto"),
+            Color::Always => write!(f, "always"),
+            Color::Never => write!(f, "never"),
+        }
+    }
+}
+
 impl RustcFlux {
     pub fn new(rustc_flux_path: PathBuf) -> Self {
         RustcFlux {
             rustc_flux_path,
-            error_format: ErrorFormat::Human,
+            error_format: Default::default(),
             crate_type: CrateType::Bin,
+            color: Default::default(),
             working_dir: None,
         }
     }
@@ -90,6 +111,7 @@ impl RustcFlux {
             .stderr(Stdio::piped())
             .arg(format!("--error-format={}", self.error_format))
             .arg(format!("--crate-type={}", self.crate_type))
+            .arg(format!("--color={}", self.color))
             .arg("-")
             .spawn()?;
 
@@ -110,6 +132,11 @@ impl RustcFlux {
 
     pub fn crate_type(&mut self, crate_type: CrateType) -> &mut Self {
         self.crate_type = crate_type;
+        self
+    }
+
+    pub fn color(&mut self, color: Color) -> &mut Self {
+        self.color = color;
         self
     }
 
