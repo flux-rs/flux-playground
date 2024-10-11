@@ -1,8 +1,7 @@
 import axios from "axios";
 import { editor } from "monaco-editor";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-const API_BASE_URL = `${BASE_URL}/api`;
+const API_BASE_URL = `/api`;
 
 namespace api {
   export type Status = "safe" | "unsafe" | "error";
@@ -53,7 +52,7 @@ namespace api {
 
   export const getExampleCode = (fileName: string): Promise<IExampleCode | api.IFatalError> => {
     return axios
-      .get(`${BASE_URL}/examples/${fileName}`)
+      .get(`/examples/${fileName}`)
       .then((response) => {
         return {
           code: response.data,
