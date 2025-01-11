@@ -7,18 +7,14 @@ interface ResultAlertProps {
 }
 
 function ResultAlert({ status, onClose }: ResultAlertProps) {
-  const severity = status == "safe" ? "success" : "error";
   let message;
   switch (status) {
-    case "safe":
+    case "success":
       message = (
         <span>
           The program is <strong>safe!</strong>
         </span>
       );
-      break;
-    case "unsafe":
-      message = "The program might be unsafe";
       break;
     case "error":
       message = "The program contains errors";
@@ -28,7 +24,7 @@ function ResultAlert({ status, onClose }: ResultAlertProps) {
   return (
     <div>
       {status !== undefined && (
-        <Alert severity={severity} onClose={onClose}>
+        <Alert severity={status} onClose={onClose}>
           {message}
         </Alert>
       )}

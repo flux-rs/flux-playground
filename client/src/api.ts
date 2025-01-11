@@ -4,7 +4,7 @@ import { editor } from "monaco-editor";
 const API_BASE_URL = `/api`;
 
 namespace api {
-  export type Status = "safe" | "unsafe" | "error";
+  export type Status = "success" | "error";
 
   export interface IVerifyResponse {
     status: Status;
@@ -35,7 +35,9 @@ namespace api {
     error: string;
   }
 
-  export const verify = (code: string): Promise<api.IVerifyResponse | api.IFatalError> => {
+  export const verify = (
+    code: string,
+  ): Promise<api.IVerifyResponse | api.IFatalError> => {
     const req = { code, crateType: "rlib" };
     return axios
       .post(`${API_BASE_URL}/verify`, req)
@@ -43,14 +45,18 @@ namespace api {
       .catch(mapErr);
   };
 
-  export const listExamples = (): Promise<api.IListExamplesResponse | api.IFatalError> => {
+  export const listExamples = (): Promise<
+    api.IListExamplesResponse | api.IFatalError
+  > => {
     return axios
       .get(`${API_BASE_URL}/examples`)
       .then((response) => response.data)
       .catch(mapErr);
   };
 
-  export const getExampleCode = (fileName: string): Promise<IExampleCode | api.IFatalError> => {
+  export const getExampleCode = (
+    fileName: string,
+  ): Promise<IExampleCode | api.IFatalError> => {
     return axios
       .get(`/examples/${fileName}`)
       .then((response) => {

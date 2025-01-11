@@ -24,10 +24,8 @@ pub struct VerifyRes {
 #[serde(rename_all = "lowercase")]
 pub enum Status {
     /// No errors
-    Safe,
-    /// The program contains flux errors
-    Unsafe,
-    /// The program contains rust errors
+    Success,
+    /// The program contains Rust or Flux errors
     Error,
 }
 
@@ -66,9 +64,7 @@ pub async fn verify(
 
     let errors = rustc_flux::parse_stderr_json(&output.stderr)?;
     let status = if output.status.success() {
-        Status::Safe
-    } else if has_flux_errors(&errors) {
-        Status::Unsafe
+        Status::Success
     } else {
         Status::Error
     };
@@ -80,13 +76,6 @@ impl VerifyRes {
     fn new(status: Status, markers: Vec<MarkerData>) -> Self {
         Self { status, markers }
     }
-}
-
-fn has_flux_errors(errors: &[RustcError]) -> bool {
-    errors
-        .iter()
-        .filter_map(|err| err.code.as_ref())
-        .any(|code| code.code == "FLUX")
 }
 
 fn map_errors_to_markers(errors: Vec<RustcError>) -> Vec<MarkerData> {
