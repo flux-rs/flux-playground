@@ -35,7 +35,7 @@ interface IExamplesMap {
 function App() {
   const value = `#![allow(unused)]
 
-#[flux::sig(fn() -> i32[10])]
+#[flux_rs::sig(fn() -> i32[10])]
 fn mk_ten() -> i32 {
     4 + 5
 }
@@ -56,7 +56,8 @@ fn mk_ten() -> i32 {
   const theme = useTheme();
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
-  const editorRef: MutableRefObject<IStandaloneCodeEditor | null> = useRef(null);
+  const editorRef: MutableRefObject<IStandaloneCodeEditor | null> =
+    useRef(null);
   const vimModeRef: MutableRefObject<any> = useRef(null);
   const vimStatusBarRef: MutableRefObject<HTMLDivElement | null> = useRef(null);
 
@@ -118,7 +119,10 @@ fn mk_ten() -> i32 {
     }
   };
 
-  const setStatusAndMarkers = (status: api.Status | undefined, markers: IMarkerData[]) => {
+  const setStatusAndMarkers = (
+    status: api.Status | undefined,
+    markers: IMarkerData[],
+  ) => {
     const monaco = monacoRef.current;
     const model = editorRef.current?.getModel();
     if (monaco && model) {
@@ -152,7 +156,10 @@ fn mk_ten() -> i32 {
     });
   };
 
-  const closeFatalError = (_event?: React.SyntheticEvent | Event, _reason?: string) => {
+  const closeFatalError = (
+    _event?: React.SyntheticEvent | Event,
+    _reason?: string,
+  ) => {
     setFatalError(undefined);
   };
 
@@ -169,7 +176,10 @@ fn mk_ten() -> i32 {
     } else {
       (window.require as any)(["monaco-vim"], (MonacoVim: any) => {
         setVimSelected(true);
-        vimModeRef.current = MonacoVim.initVimMode(editor, vimStatusBarRef.current);
+        vimModeRef.current = MonacoVim.initVimMode(
+          editor,
+          vimStatusBarRef.current,
+        );
         resizeEditor();
       });
     }
@@ -191,14 +201,16 @@ fn mk_ten() -> i32 {
   const exampleItems = [];
   let key = 0;
   for (const group of Object.values(examples)) {
-    exampleItems.push(<ListSubheader key={key++}>{group.groupName}</ListSubheader>);
+    exampleItems.push(
+      <ListSubheader key={key++}>{group.groupName}</ListSubheader>,
+    );
     for (const example of group.examples) {
       exampleItems.push(
         <MenuItem key={key++} value="">
           <Link component={RouterLink} to={`?example=${example.fileName}`}>
             {example.displayName}
           </Link>
-        </MenuItem>
+        </MenuItem>,
       );
     }
   }
@@ -209,7 +221,10 @@ fn mk_ten() -> i32 {
     <Container
       className="content"
       maxWidth={false}
-      sx={{ height: "100vh", background: (theme) => `${theme.palette.background.default}` }}
+      sx={{
+        height: "100vh",
+        background: (theme) => `${theme.palette.background.default}`,
+      }}
     >
       <Stack height="100%">
         <h1 style={{ color: theme.palette.text.primary }}>Flux Playground</h1>
@@ -221,7 +236,11 @@ fn mk_ten() -> i32 {
             </Select>
           </FormControl>
         </Box>
-        <Stack direction="row" spacing={2} sx={{ padding: "1.25em 0", minHeight: "48px" }}>
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ padding: "1.25em 0", minHeight: "48px" }}
+        >
           <VerifyButton onClick={doVerify} verifying={verifying} />
           <ResultAlert status={status} onClose={closeResult} />
         </Stack>

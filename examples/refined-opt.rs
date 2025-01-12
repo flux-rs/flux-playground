@@ -1,15 +1,15 @@
 #![allow(unused)]
 
-#[flux::refined_by(b:bool)]
+#[flux_rs::refined_by(b:bool)]
 enum Opt<T> {
-    #[flux::variant(Opt<T>[false])]
+    #[flux_rs::variant(Opt<T>[false])]
     None,
-    #[flux::variant((T) -> Opt<T>[true])]
+    #[flux_rs::variant((T) -> Opt<T>[true])]
     Some(T),
 }
 
 impl<T> Opt<T> {
-    #[flux::sig(fn(&Opt<T>[@b]) -> bool[b])]
+    #[flux_rs::sig(fn(&Opt<T>[@b]) -> bool[b])]
     fn is_some(&self) -> bool {
         match self {
             Opt::None => false,
@@ -17,7 +17,7 @@ impl<T> Opt<T> {
         }
     }
 
-    #[flux::sig(fn(Opt<T>[true]) -> T)]
+    #[flux_rs::sig(fn(Opt<T>[true]) -> T)]
     fn unwrap(self) -> T {
         match self {
             Opt::Some(v) => v,
@@ -34,7 +34,7 @@ fn test(opt: Opt<i32>) -> i32 {
     }
 }
 
-#[flux::sig(fn() -> T requires false)]
+#[flux_rs::sig(fn() -> T requires false)]
 fn unreachable<T>() -> T {
     loop {}
 }

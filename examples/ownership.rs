@@ -1,16 +1,16 @@
 #![allow(unused)]
 
-#[flux::sig(fn(bool[true]) )]
+#[flux_rs::sig(fn(bool[true]) )]
 fn assert(_: bool) {}
 
 // Increment via a value
-#[flux::sig(fn(n: i32) -> i32[n+1])]
+#[flux_rs::sig(fn(n: i32) -> i32[n+1])]
 fn inc_val(n: i32) -> i32 {
     n + 1
 }
 
 // Increment via a mutable reference
-#[flux::sig(fn(x: &mut i32{v: 0 < v}))]
+#[flux_rs::sig(fn(x: &mut i32{v: 0 < v}))]
 fn inc_mut(x: &mut i32) {
     *x += 1;
 
@@ -19,8 +19,8 @@ fn inc_mut(x: &mut i32) {
 }
 
 // Increment via a strong reference
-#[flux::sig(
-    fn(x: &strg i32[@n]) 
+#[flux_rs::sig(
+    fn(x: &strg i32[@n])
     ensures x: i32[n+1]
 )]
 fn inc_strg(x: &mut i32) {

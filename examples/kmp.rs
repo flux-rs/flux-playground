@@ -3,7 +3,7 @@
 mod rvec;
 use rvec::RVec;
 
-#[flux::sig(
+#[flux_rs::sig(
     fn(&RVec<u8>[@len]) -> RVec<usize{v: v < len}>[len]
     requires len > 0
 )]
@@ -28,7 +28,7 @@ fn kmp_table(p: &RVec<u8>) -> RVec<usize> {
     t
 }
 
-#[flux::sig(fn(m: RVec<u8>{0 < m && m <= n}, &RVec<u8>[@n]) -> usize)]
+#[flux_rs::sig(fn(m: RVec<u8>{0 < m && m <= n}, &RVec<u8>[@n]) -> usize)]
 fn kmp_search(mut pat: RVec<u8>, target: &RVec<u8>) -> usize {
     let mut t_i = 0;
     let mut p_i = 0;
