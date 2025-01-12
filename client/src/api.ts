@@ -1,7 +1,8 @@
 import axios from "axios";
 import { editor } from "monaco-editor";
 
-const API_BASE_URL = `/api`;
+// Remove trailing /
+const BASE_URL = import.meta.env.VITE_BASE_URL.replace(/\/+$/, "");
 
 namespace api {
   export type Status = "success" | "error";
@@ -40,7 +41,7 @@ namespace api {
   ): Promise<api.IVerifyResponse | api.IFatalError> => {
     const req = { code, crateType: "rlib" };
     return axios
-      .post(`${API_BASE_URL}/verify`, req)
+      .post(url(`/api/verify`), req)
       .then((response) => response.data)
       .catch(mapErr);
   };
@@ -49,7 +50,7 @@ namespace api {
     api.IListExamplesResponse | api.IFatalError
   > => {
     return axios
-      .get(`${API_BASE_URL}/examples`)
+      .get(url("/api/examples"))
       .then((response) => response.data)
       .catch(mapErr);
   };
@@ -58,18 +59,14 @@ namespace api {
     fileName: string,
   ): Promise<IExampleCode | api.IFatalError> => {
     return axios
-      .get(`/examples/${fileName}`)
+      .get(url(`/examples/${fileName}`))
       .then((response) => {
         return {
           code: response.data,
         };
       })
       .catch((response) => {
-        if (response.response.status == 500) {
-          return {
-            error: response.response.statusText,
-          };
-        } else if (response.response.status == 404) {
+        if (response.response.status == 404) {
           return {
             error: "File not found",
           };
@@ -89,6 +86,10 @@ namespace api {
         error: response.response.statusText,
       };
     }
+  };
+
+  const url = (path: string): string => {
+    return `${BASE_URL}${path}`;
   };
 }
 
