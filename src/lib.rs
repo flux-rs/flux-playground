@@ -4,12 +4,12 @@ use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
 pub mod api;
+pub mod flux;
 pub mod play_rust_lang_org;
-pub mod rustc_flux;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub rustc_flux: PathBuf,
+    pub flux_path: PathBuf,
     pub ansi_to_html: bool,
     pub examples: PathBuf,
 }

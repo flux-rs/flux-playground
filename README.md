@@ -4,15 +4,17 @@ Service to run flux in the browser.
 
 ## Development
 
-For development it is recommended to run the server and client separately
+For development run the server and client separately
 
 ### Run Server
 
 To run the server
 
 ```bash
-$ cargo run -- --rustc-flux-path /path/to/rustc-flux
+$ cargo run -- --flux-path /path/to/flux
 ```
+
+This will start a server in port 3000.
 
 Alternatively, you can install cargo watch:
 
@@ -23,16 +25,14 @@ $ cargo install cargo-watch
 and run the server with
 
 ```bash
-$ cargo watch -x "run -- --rustc-flux-path /path/to-/rustc-flux"
+$ cargo watch -x "run -- --flux-path /path/to/flux"
 ```
-
-This will start a server in port 3000.
 
 ### Run Client
 
 **Install dependencies**
 
-The first time you run the client you need to install the dependencies
+If you are running for the first time, install dependencies first
 
 ```bash
 $ cd client
@@ -70,5 +70,5 @@ To start the server
 
 ```bash
 $ cd dist
-$ ./flux-playground --rustc-flux-path /path/to/rustc-flux
+$ ./flux-playground --flux-path /path/to/flux
 ```

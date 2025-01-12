@@ -23,7 +23,7 @@ struct Args {
     #[arg(long, default_value_t = IpAddr::from([0, 0, 0, 0]))]
     bind: IpAddr,
     #[arg(long)]
-    rustc_flux_path: PathBuf,
+    flux_path: PathBuf,
     /// Run with `--color==awlays` and convert ANSI escape codes to HTML
     #[arg(long, default_value = "false")]
     ansi_to_html: bool,
@@ -37,7 +37,7 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     let state = AppState {
-        rustc_flux: args.rustc_flux_path,
+        flux_path: args.flux_path,
         examples: args.examples.clone(),
         ansi_to_html: args.ansi_to_html,
     };

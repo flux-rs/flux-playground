@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    rustc_flux::{Color, RustcFlux},
+    flux::{Color, Flux},
     AppError, AppState,
 };
 
@@ -44,7 +44,7 @@ pub async fn evaluate(
     State(state): State<AppState>,
     Json(req): Json<EvaluateReq>,
 ) -> Result<Json<EvaluateRes>, AppError> {
-    let mut rustc = RustcFlux::new(state.rustc_flux);
+    let mut rustc = Flux::new(state.flux_path);
 
     if state.ansi_to_html {
         rustc.color(Color::Always);

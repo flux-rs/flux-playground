@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::Serialize_repr;
 
 use crate::{
-    rustc_flux::{self, CrateType, ErrorLevel, RustcError, RustcFlux},
+    flux::{self, CrateType, ErrorLevel, Flux, RustcError},
     AppError, AppState,
 };
 
@@ -53,8 +53,8 @@ pub async fn verify(
     State(state): State<AppState>,
     Json(req): Json<VerifyReq>,
 ) -> Result<Json<VerifyRes>, AppError> {
-    let output = RustcFlux::new(state.rustc_flux)
-        .error_format(rustc_flux::ErrorFormat::Json)
+    let output = Flux::new(state.flux_path)
+        .error_format(flux::ErrorFormat::Json)
         .crate_type(req.crate_type)
         // Run inside examples/lib to be able to declare modules
         // there without specifying a path.
@@ -62,7 +62,7 @@ pub async fn verify(
         .run(&req.code)
         .await?;
 
-    let errors = rustc_flux::parse_stderr_json(&output.stderr)?;
+    let errors = flux::parse_stderr_json(&output.stderr)?;
     let status = if output.status.success() {
         Status::Success
     } else {

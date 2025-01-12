@@ -8,8 +8,8 @@ use std::{
 use serde::Deserialize;
 use tokio::io::AsyncWriteExt;
 
-pub struct RustcFlux {
-    rustc_flux_path: PathBuf,
+pub struct Flux {
+    flux_path: PathBuf,
     error_format: ErrorFormat,
     crate_type: CrateType,
     color: Color,
@@ -88,10 +88,10 @@ impl fmt::Display for Color {
     }
 }
 
-impl RustcFlux {
-    pub fn new(rustc_flux_path: PathBuf) -> Self {
-        RustcFlux {
-            rustc_flux_path,
+impl Flux {
+    pub fn new(flux_path: PathBuf) -> Self {
+        Flux {
+            flux_path,
             error_format: Default::default(),
             crate_type: CrateType::Bin,
             color: Default::default(),
@@ -100,7 +100,7 @@ impl RustcFlux {
     }
 
     pub async fn run(&mut self, code: &str) -> io::Result<Output> {
-        let mut command = tokio::process::Command::new(&self.rustc_flux_path);
+        let mut command = tokio::process::Command::new(&self.flux_path);
 
         if let Some(working_dir) = &self.working_dir {
             command.current_dir(working_dir);
