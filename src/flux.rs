@@ -5,7 +5,7 @@ use std::{
     process::{Output, Stdio},
 };
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
 
 pub struct Flux {
@@ -32,32 +32,35 @@ pub enum CrateType {
     Rlib,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RustcError {
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<Code>,
     pub level: ErrorLevel,
     pub spans: Vec<Span>,
     pub children: Vec<RustcError>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Code {
     pub code: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub explanation: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Span {
     pub line_start: u64,
     pub line_end: u64,
     pub column_start: u64,
     pub column_end: u64,
     pub is_primary: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 // #[serde(rename_all = "kebab-case")]
 #[serde(try_from = "&str")]
 pub enum ErrorLevel {

@@ -15,7 +15,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import Paper from "@mui/material/Paper";
 import Editor, { Monaco } from "@monaco-editor/react";
-import { editor } from "monaco-editor";
+import { editor, MarkerSeverity } from "monaco-editor";
 import { useLocation, Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 import ShareDialog from "./ShareDialog";
@@ -113,10 +113,70 @@ fn mk_ten() -> i32 {
         if ("error" in response) {
           setFatalError(response.error);
         } else {
-          setStatusAndMarkers(response.status, response.markers);
+          const ice = hasIce(response.errors);
+          console.log(ice);
+          if (ice != undefined) {
+            setFatalError(ice);
+          } else {
+            const markers = errorsToMarkers(response.errors);
+            setStatusAndMarkers(response.status, markers);
+          }
         }
       });
     }
+  };
+
+  const errorsToMarkers = (errors: api.IRustcError[]): IMarkerData[] => {
+    const markers: IMarkerData[] = [];
+    for (const error of errors) {
+      const primarySpan = error.spans.find((span) => span.is_primary);
+      const severity = errorLevelToSeverity(error.level);
+      if (primarySpan === undefined || severity === undefined) {
+        continue;
+      }
+
+      let message = error.message;
+      let label = primarySpan.label;
+      if (label) {
+        message = `${message}\n${label}`;
+      }
+
+      markers.push({
+        severity,
+        message,
+        startLineNumber: primarySpan.line_start,
+        startColumn: primarySpan.column_start,
+        endLineNumber: primarySpan.line_end,
+        endColumn: primarySpan.column_end,
+      });
+    }
+    return markers;
+  };
+
+  const errorLevelToSeverity = (
+    level: api.ErrorLevel,
+  ): MarkerSeverity | undefined => {
+    switch (level) {
+      case api.ErrorLevel.Error:
+        return MarkerSeverity.Error;
+      case api.ErrorLevel.Warning:
+        return MarkerSeverity.Warning;
+      case api.ErrorLevel.Help:
+        return MarkerSeverity.Hint;
+      case api.ErrorLevel.Note:
+        return MarkerSeverity.Info;
+      default:
+        return undefined;
+    }
+  };
+
+  const hasIce = (errors: api.IRustcError[]): string | undefined => {
+    for (const error of errors) {
+      if (error.level == api.ErrorLevel.ICE) {
+        return error.message;
+      }
+    }
+    return undefined;
   };
 
   const setStatusAndMarkers = (

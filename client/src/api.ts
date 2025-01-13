@@ -9,7 +9,37 @@ namespace api {
 
   export interface IVerifyResponse {
     status: Status;
-    markers: editor.IMarkerData[];
+    errors: IRustcError[];
+  }
+
+  export interface IRustcError {
+    message: string;
+    code?: ICode;
+    level: ErrorLevel;
+    spans: ISpan[];
+  }
+
+  export interface ICode {
+    code: string;
+    explanation?: string;
+  }
+
+  export enum ErrorLevel {
+    Error = "Error",
+    Warning = "Warning",
+    FailureNote = "FailureNote",
+    Help = "Help",
+    Note = "Note",
+    ICE = "ICE",
+  }
+
+  export interface ISpan {
+    line_start: number;
+    line_end: number;
+    column_start: number;
+    column_end: number;
+    is_primary: boolean;
+    label?: string;
   }
 
   export interface IListExamplesResponse {
