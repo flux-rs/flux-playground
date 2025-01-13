@@ -1,6 +1,6 @@
 import LoadingButton from "@mui/lab/LoadingButton";
 import { MouseEventHandler } from "react";
-import { ReactComponent as ArrowRight } from "./assets/arrow-right.svg";
+import ArrowRight from "./assets/arrow-right.svg?react";
 
 interface VerifyButtonProps {
   onClick?: MouseEventHandler;
