@@ -3,7 +3,10 @@ use std::{
     io::{self, BufRead},
     path::PathBuf,
     process::{Output, Stdio},
+    time::Duration,
 };
+
+const TIMEOUT: Duration = Duration::from_secs(5 * 60);
 
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
@@ -127,7 +130,7 @@ impl Flux {
             .write_all(code.as_bytes())
             .await?;
 
-        child.wait_with_output().await
+        tokio::time::timeout(TIMEOUT, child.wait_with_output()).await?
     }
 
     pub fn error_format(&mut self, error_format: ErrorFormat) -> &mut Self {
