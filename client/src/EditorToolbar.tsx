@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import ToggleButton from "@mui/material/ToggleButton";
 import Paper from "@mui/material/Paper";
-import { ReactComponent as VimIcon } from "./assets/vim.svg";
+import VimIcon from "./assets/vim.svg?react";
 import React from "react";
 import { bindMenu, bindTrigger } from "material-ui-popup-state";
 import Menu from "@mui/material/Menu";
