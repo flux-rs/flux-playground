@@ -115,6 +115,7 @@ impl Flux {
             .arg(format!("--error-format={}", self.error_format))
             .arg(format!("--crate-type={}", self.crate_type))
             .arg(format!("--color={}", self.color))
+            .arg("--edition=2024")
             .arg("-")
             .spawn()?;
 
