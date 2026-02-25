@@ -56,7 +56,8 @@ fn mk_ten() -> i32 {
   const theme = useTheme();
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
-  const editorRef: MutableRefObject<IStandaloneCodeEditor | null> = useRef(null);
+  const editorRef: MutableRefObject<IStandaloneCodeEditor | null> =
+    useRef(null);
   const vimModeRef: MutableRefObject<any> = useRef(null);
   const vimStatusBarRef: MutableRefObject<HTMLDivElement | null> = useRef(null);
 
@@ -95,8 +96,13 @@ fn mk_ten() -> i32 {
     const params = new URLSearchParams(search);
     const example = params.get("example");
     const code = params.get("code");
+    const encoding = params.get("encoding");
     if (code) {
-      editor.setValue(utf8.decode(deflate.inflate(base64url.decode(code))));
+      if (encoding === "plain") {
+        editor.setValue(code);
+      } else {
+        editor.setValue(utf8.decode(deflate.inflate(base64url.decode(code))));
+      }
     } else if (example) {
       loadExample(editor, example);
     }
@@ -152,7 +158,9 @@ fn mk_ten() -> i32 {
     return markers;
   };
 
-  const errorLevelToSeverity = (level: api.ErrorLevel): MarkerSeverity | undefined => {
+  const errorLevelToSeverity = (
+    level: api.ErrorLevel,
+  ): MarkerSeverity | undefined => {
     switch (level) {
       case api.ErrorLevel.Error:
         return MarkerSeverity.Error;
@@ -176,7 +184,10 @@ fn mk_ten() -> i32 {
     return undefined;
   };
 
-  const setStatusAndMarkers = (status: api.Status | undefined, markers: IMarkerData[]) => {
+  const setStatusAndMarkers = (
+    status: api.Status | undefined,
+    markers: IMarkerData[],
+  ) => {
     const monaco = monacoRef.current;
     const model = editorRef.current?.getModel();
     if (monaco && model) {
@@ -210,7 +221,10 @@ fn mk_ten() -> i32 {
     });
   };
 
-  const closeFatalError = (_event?: React.SyntheticEvent | Event, _reason?: string) => {
+  const closeFatalError = (
+    _event?: React.SyntheticEvent | Event,
+    _reason?: string,
+  ) => {
     setFatalError(undefined);
   };
 
@@ -227,7 +241,10 @@ fn mk_ten() -> i32 {
     } else {
       (window.require as any)(["monaco-vim"], (MonacoVim: any) => {
         setVimSelected(true);
-        vimModeRef.current = MonacoVim.initVimMode(editor, vimStatusBarRef.current);
+        vimModeRef.current = MonacoVim.initVimMode(
+          editor,
+          vimStatusBarRef.current,
+        );
         resizeEditor();
       });
     }
@@ -249,7 +266,9 @@ fn mk_ten() -> i32 {
   const exampleItems = [];
   let key = 0;
   for (const group of Object.values(examples)) {
-    exampleItems.push(<ListSubheader key={key++}>{group.groupName}</ListSubheader>);
+    exampleItems.push(
+      <ListSubheader key={key++}>{group.groupName}</ListSubheader>,
+    );
     for (const example of group.examples) {
       exampleItems.push(
         <MenuItem
@@ -259,7 +278,7 @@ fn mk_ten() -> i32 {
           to={`?example=${example.fileName}`}
         >
           {example.displayName}
-        </MenuItem>
+        </MenuItem>,
       );
     }
   }
@@ -285,7 +304,11 @@ fn mk_ten() -> i32 {
             </Select>
           </FormControl>
         </Box>
-        <Stack direction="row" spacing={2} sx={{ padding: "1.25em 0", minHeight: "48px" }}>
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ padding: "1.25em 0", minHeight: "48px" }}
+        >
           <VerifyButton onClick={doVerify} verifying={verifying} />
           <ResultAlert status={status} onClose={closeResult} />
         </Stack>
