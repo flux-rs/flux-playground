@@ -2,7 +2,6 @@ import VerifyButton from "./VerifyButton";
 import React, { useRef, MutableRefObject, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
 import ResultAlert from "./ResultAlert";
 import api from "./api";
 import FatalError from "./FatalError";
@@ -16,8 +15,7 @@ import Select from "@mui/material/Select";
 import Paper from "@mui/material/Paper";
 import Editor, { Monaco } from "@monaco-editor/react";
 import { editor, MarkerSeverity } from "monaco-editor";
-import { useLocation, Link as RouterLink } from "react-router-dom";
-import Link from "@mui/material/Link";
+import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 import ShareDialog from "./ShareDialog";
 import * as base64url from "./base64url";
 import * as utf8 from "./utf8";
@@ -52,7 +50,9 @@ fn mk_ten() -> i32 {
   const [examples, setExamples] = useState({} as IExamplesMap);
   const [vimSelected, setVimSelected] = useState(false);
   const [shareLink, setShareLink] = useState(undefined as string | undefined);
-  const search = useLocation().search;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const search = location.search;
   const theme = useTheme();
 
   const monacoRef: MutableRefObject<Monaco | null> = useRef(null);
@@ -103,6 +103,7 @@ fn mk_ten() -> i32 {
       } else {
         editor.setValue(utf8.decode(deflate.inflate(base64url.decode(code))));
       }
+      navigate(location.pathname, { replace: true });
     } else if (example) {
       loadExample(editor, example);
     }
