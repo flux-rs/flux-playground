@@ -15,8 +15,13 @@ After=network-online.target
 [Service]
 # static/ and examples/ are resolved relative to the working directory.
 WorkingDirectory=%h/.flux-playground
-# The flux sysroot (and its flux binary) is deployed to ~/.flux.
-ExecStart=%h/.flux-playground/flux-playground --flux-path %h/.flux/flux --port 3000
+# The flux sysroot (with the flux binary) is deployed to ~/.flux/sysroot, the
+# default location flux looks in, so FLUX_SYSROOT need not be set.
+# flux runs fixpoint and z3 (shipped in ~/.flux/sysroot/bin) and rustc (the
+# rustup proxy in ~/.cargo/bin) through PATH; the user manager's default PATH
+# has none of them.
+Environment=PATH=%h/.flux/sysroot/bin:%h/.cargo/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.flux-playground/flux-playground --flux-path %h/.flux/sysroot/flux --port 3000
 Restart=on-failure
 
 [Install]
