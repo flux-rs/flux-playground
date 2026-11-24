@@ -1,0 +1,88 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    # Deploys the playground (server binary, client and examples) to the
+    # playground server, through the forced-command script tools/flux-deploy in
+    # the flux repo. Configured through variables. DEPLOY_TARGET and
+    # DEPLOY_RUNNER are read by `if`/`runs-on`, which are evaluated before the
+    # environment is attached, so they must be repository variables; the rest
+    # may also be `playground` environment ones.
+    #   DEPLOY_TARGET       ssh destination as user@host; the job is skipped when unset
+    #   DEPLOY_KNOWN_HOSTS  pinned `ssh-keyscan [-p <port>] <host>` output, verified out of band
+    #   DEPLOY_PORT         (optional) ssh port, default 22
+    #   DEPLOY_RUNNER       (optional) runner image; its glibc must not be newer
+    #                       than the server's, or the binary won't run there
+    # and the FLUX_DEPLOY_KEY secret, whose public key is restricted on the
+    # server to tools/flux-deploy.
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'ubuntu-22.04' }}
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET != ''
+    environment: playground
+    # Serialize deploys; never cancel one mid-way through the upload/swap.
+    concurrency:
+      group: playground-deploy
+      cancel-in-progress: false
+    env:
+      DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.8.0
+
+      - name: Build server, client and examples into dist/
+        run: ./install.sh
+
+      - name: Stamp build with commit timestamp
+        run: git log -1 --format='%ct' > dist/version
+
+      - name: Set up SSH key
+        env:
+          FLUX_DEPLOY_KEY: ${{ secrets.FLUX_DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+        run: |
+          for v in DEPLOY_KNOWN_HOSTS FLUX_DEPLOY_KEY; do
+            if [ -z "${!v}" ]; then
+              echo "::error::$v is not set" >&2
+              exit 1
+            fi
+          done
+          mkdir -p ~/.ssh
+          printf '%s\n' "$FLUX_DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          # Used by both ssh and rsync, so the target stays a plain user@host.
+          if [ -n "$DEPLOY_PORT" ]; then
+            if [[ ! "$DEPLOY_PORT" =~ ^[0-9]+$ ]]; then
+              echo "::error::DEPLOY_PORT must be a number" >&2
+              exit 1
+            fi
+            printf 'Host %s\n  Port %s\n' "${DEPLOY_TARGET#*@}" "$DEPLOY_PORT" >> ~/.ssh/config
+            chmod 600 ~/.ssh/config
+          fi
+
+      - name: Compute deploy ID
+        # Unique per run and per attempt, so re-runs never upload into the
+        # directory that is currently live on the server.
+        run: echo "DEPLOY_ID=$(git rev-parse HEAD)-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+
+      - name: Rsync dist/ to per-run staging directory on server
+        run: |
+          # Destination is relative: rrsync (the forced command on the server)
+          # roots it under ~/.flux-staging, so this lands in ~/.flux-staging/playground/$DEPLOY_ID.
+          rsync -az --delete dist/ "$DEPLOY_TARGET:playground/$DEPLOY_ID/"
+
+      - name: Atomically swap playground on server and restart it
+        run: ssh "$DEPLOY_TARGET" "flux-deploy playground $DEPLOY_ID"

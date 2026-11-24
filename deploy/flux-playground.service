@@ -1,0 +1,23 @@
+# systemd user unit for the deployed playground. CI deploys into
+# ~/.flux-playground (a symlink swapped on each deploy) and restarts this
+# service; see tools/flux-deploy in the flux repo.
+#
+# Install on the server, as the deploy user:
+#   mkdir -p ~/.config/systemd/user
+#   cp flux-playground.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now flux-playground.service
+#   loginctl enable-linger "$USER"   # keep it running without a login session
+[Unit]
+Description=Flux playground
+After=network-online.target
+
+[Service]
+# static/ and examples/ are resolved relative to the working directory.
+WorkingDirectory=%h/.flux-playground
+# The flux sysroot (and its flux binary) is deployed to ~/.flux.
+ExecStart=%h/.flux-playground/flux-playground --flux-path %h/.flux/flux --port 3000
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
