@@ -1,8 +1,11 @@
-use flux_playground::{api, play_rust_lang_org, AppError, AppState};
+use flux_playground::{api, limiter::Limiter, play_rust_lang_org, AppError, AppState};
 use std::{
     io,
     net::{IpAddr, SocketAddr},
+    num::NonZeroUsize,
     path::PathBuf,
+    sync::Arc,
+    thread,
 };
 use tower_http::{
     cors::{self, CorsLayer},
@@ -31,15 +34,26 @@ struct Args {
     r#static: PathBuf,
     #[arg(long, default_value = "./examples")]
     examples: PathBuf,
+    /// Maximum number of flux processes running at once [default: number of CPUs]
+    #[arg(long)]
+    max_concurrent: Option<NonZeroUsize>,
+    /// Maximum number of requests waiting for a free slot; beyond that, requests get a 503
+    #[arg(long, default_value_t = 32)]
+    max_queued: usize,
 }
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
+    let max_concurrent = args
+        .max_concurrent
+        .or_else(|| thread::available_parallelism().ok())
+        .map_or(1, NonZeroUsize::get);
     let state = AppState {
         flux_path: args.flux_path,
         examples: args.examples.clone(),
         ansi_to_html: args.ansi_to_html,
+        limiter: Arc::new(Limiter::new(max_concurrent, args.max_queued)),
     };
 
     let cors = CorsLayer::new()
@@ -68,7 +82,10 @@ async fn main() {
 
     let addr = SocketAddr::from((args.bind, args.port));
 
-    println!("Listening on {addr} ...");
+    println!(
+        "Listening on {addr} (max {max_concurrent} concurrent flux runs, {} queued) ...",
+        args.max_queued
+    );
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

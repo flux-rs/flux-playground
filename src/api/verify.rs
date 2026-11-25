@@ -32,6 +32,7 @@ pub async fn verify(
     State(state): State<AppState>,
     Json(req): Json<VerifyReq>,
 ) -> Result<Json<VerifyRes>, AppError> {
+    let _permit = state.limiter.acquire().await.ok_or_else(AppError::busy)?;
     let output = Flux::new(state.flux_path)
         .error_format(flux::ErrorFormat::Json)
         .crate_type(req.crate_type)

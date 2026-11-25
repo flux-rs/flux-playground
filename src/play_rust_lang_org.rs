@@ -44,6 +44,7 @@ pub async fn evaluate(
     State(state): State<AppState>,
     Json(req): Json<EvaluateReq>,
 ) -> Result<Json<EvaluateRes>, AppError> {
+    let _permit = state.limiter.acquire().await.ok_or_else(AppError::busy)?;
     let mut rustc = Flux::new(state.flux_path);
 
     if state.ansi_to_html {
