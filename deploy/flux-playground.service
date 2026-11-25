@@ -15,15 +15,15 @@ After=network-online.target
 [Service]
 # static/ and examples/ are resolved relative to the working directory.
 WorkingDirectory=%h/.flux-playground
-# The flux sysroot (with the flux binary) is deployed to ~/.flux/sysroot.
-# flux runs fixpoint and z3 (shipped in ~/.flux/sysroot/bin) and rustc (the
-# rustup proxy in ~/.cargo/bin) through PATH; the user manager's default PATH
-# has none of them.
+# The flux sysroot is deployed to ~/.flux/sysroot, with the flux binary in
+# ~/.flux/sysroot/bin. flux runs fixpoint and z3 (also shipped in
+# ~/.flux/sysroot/bin) and rustc (the rustup proxy in ~/.cargo/bin) through
+# PATH; the user manager's default PATH has none of them.
 Environment=PATH=%h/.flux/sysroot/bin:%h/.cargo/bin:/usr/local/bin:/usr/bin:/bin
 # At most 3 flux runs at a time on the 4-core server, leaving a core for the
 # server, nginx, sshd and deploys. A typical run peaks at ~60-130 MB, but
 # pathological programs (e.g. z3 blowing up) can use much more.
-ExecStart=%h/.flux-playground/flux-playground --flux-path %h/.flux/sysroot/flux --port 3000 --max-concurrent 3
+ExecStart=%h/.flux-playground/flux-playground --flux-path %h/.flux/sysroot/bin/flux --port 3000 --max-concurrent 3
 Restart=on-failure
 
 # Resource limits sized for a 2 GB machine, leaving room for the OS, sshd, nginx 
