@@ -6,10 +6,11 @@ use std::{
     time::Duration,
 };
 
-const TIMEOUT: Duration = Duration::from_secs(5 * 60);
+const TIMEOUT: Duration = Duration::from_secs(60);
 
+use process_wrap::tokio::{ChildWrapper, CommandWrap, ProcessGroup};
 use serde::{Deserialize, Serialize};
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub struct Flux {
     flux_path: PathBuf,
@@ -106,31 +107,50 @@ impl Flux {
     }
 
     pub async fn run(&mut self, code: &str) -> io::Result<Output> {
-        let mut command = tokio::process::Command::new(&self.flux_path);
+        let mut command = CommandWrap::with_new(&self.flux_path, |command| {
+            if let Some(working_dir) = &self.working_dir {
+                command.current_dir(working_dir);
+            }
+            command
+                .stdin(Stdio::piped())
+                .stderr(Stdio::piped())
+                .env("FLUXFLAGS", "-Fsummary=off")
+                .arg(format!("--error-format={}", self.error_format))
+                .arg(format!("--crate-type={}", self.crate_type))
+                .arg(format!("--color={}", self.color))
+                .arg("--edition=2024")
+                .arg("-");
+        });
+        // Run flux as the leader of a new process group, so that it and everything it starts
+        // (flux-driver, fixpoint, z3) can be killed together.
+        command.wrap(ProcessGroup::leader());
 
-        if let Some(working_dir) = &self.working_dir {
-            command.current_dir(working_dir);
-        }
-
-        let mut child = command
-            .stdin(Stdio::piped())
-            .stderr(Stdio::piped())
-            .env("FLUXFLAGS", "-Fsummary=off")
-            .arg(format!("--error-format={}", self.error_format))
-            .arg(format!("--crate-type={}", self.crate_type))
-            .arg(format!("--color={}", self.color))
-            .arg("--edition=2024")
-            .arg("-")
-            .spawn()?;
+        // Kills the process group unless flux finishes: on timeout, on an I/O error, or when the
+        // request is cancelled (e.g. the client disconnects and this future is dropped).
+        let mut child = KillGroupOnDrop::new(command.spawn()?);
 
         child
-            .stdin
+            .child
+            .stdin()
             .take()
             .unwrap()
             .write_all(code.as_bytes())
             .await?;
 
-        tokio::time::timeout(TIMEOUT, child.wait_with_output()).await?
+        let mut stderr_pipe = child.child.stderr().take().unwrap();
+        let wait = async {
+            let mut stderr = Vec::new();
+            let (status, _) =
+                tokio::try_join!(child.child.wait(), stderr_pipe.read_to_end(&mut stderr))?;
+            io::Result::Ok(Output {
+                status,
+                stdout: Vec::new(),
+                stderr,
+            })
+        };
+        let output = tokio::time::timeout(TIMEOUT, wait).await??;
+        child.disarm();
+        Ok(output)
     }
 
     pub fn error_format(&mut self, error_format: ErrorFormat) -> &mut Self {
@@ -151,6 +171,36 @@ impl Flux {
     pub fn working_dir(&mut self, path: PathBuf) -> &mut Self {
         self.working_dir = Some(path);
         self
+    }
+}
+
+/// Kills a child's whole process group when dropped, unless disarmed.
+///
+/// `flux` is only a launcher: it starts `flux-driver`, which starts `fixpoint`, which starts `z3`.
+/// process-wrap's `KillOnDrop` only sets tokio's `kill_on_drop`, which kills just `flux` and would
+/// leave the rest running. For a child spawned with `ProcessGroup`, `start_kill` signals the whole
+/// group instead.
+struct KillGroupOnDrop {
+    child: Box<dyn ChildWrapper>,
+    armed: bool,
+}
+
+impl KillGroupOnDrop {
+    fn new(child: Box<dyn ChildWrapper>) -> Self {
+        KillGroupOnDrop { child, armed: true }
+    }
+
+    fn disarm(&mut self) {
+        self.armed = false;
+    }
+}
+
+impl Drop for KillGroupOnDrop {
+    fn drop(&mut self) {
+        if self.armed {
+            // Errors (e.g. the group already exited) are ignored.
+            let _ = self.child.start_kill();
+        }
     }
 }
 
