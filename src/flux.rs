@@ -114,7 +114,7 @@ impl Flux {
             command
                 .stdin(Stdio::piped())
                 .stderr(Stdio::piped())
-                .env("FLUXFLAGS", "-Fsummary=off")
+                .arg("-Fsummary=off")
                 .arg(format!("--error-format={}", self.error_format))
                 .arg(format!("--crate-type={}", self.crate_type))
                 .arg(format!("--color={}", self.color))
